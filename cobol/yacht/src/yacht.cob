@@ -49,6 +49,10 @@
                WHEN "yacht" PERFORM SCORE-YACHT
                WHEN "ones" PERFORM SCORE-ONES
                WHEN "twos" PERFORM SCORE-TWOS
+               WHEN "threes" PERFORM SCORE-THREES
+               WHEN "fours" PERFORM SCORE-FOURS
+               WHEN "fives" PERFORM SCORE-FIVES
+               WHEN "sixes" PERFORM SCORE-SIXES
            END-EVALUATE.
            EXIT.
       *
@@ -76,10 +80,46 @@
                UNTIL WS-DICE-INDEX > WS-CONST-NUM-DICE.
       *
        SCORE-TWOS.
-      * Calculates score for Ones category.
+      * Calculates score for Twos category.
       *
       *    Set the die value needed to 2.
            MOVE WS-CONST-DV-TWO             TO WS-DIE-VALUE-NEEDED.
+      *    Iterate through each die.
+           PERFORM CHECK-DIE-VALUE VARYING WS-DICE-INDEX FROM 1 BY 1
+               UNTIL WS-DICE-INDEX > WS-CONST-NUM-DICE.
+      *
+       SCORE-THREES.
+      * Calculates score for Threes category.
+      *
+      *    Set the die value needed to 3.
+           MOVE WS-CONST-DV-THREE           TO WS-DIE-VALUE-NEEDED.
+      *    Iterate through each die.
+           PERFORM CHECK-DIE-VALUE VARYING WS-DICE-INDEX FROM 1 BY 1
+               UNTIL WS-DICE-INDEX > WS-CONST-NUM-DICE.
+      *
+       SCORE-FOURS.
+      * Calculates score for Fours category.
+      *
+      *    Set the die value needed to 4.
+           MOVE WS-CONST-DV-FOUR            TO WS-DIE-VALUE-NEEDED.
+      *    Iterate through each die.
+           PERFORM CHECK-DIE-VALUE VARYING WS-DICE-INDEX FROM 1 BY 1
+               UNTIL WS-DICE-INDEX > WS-CONST-NUM-DICE.
+      *
+       SCORE-FIVES.
+      * Calculates score for Fives category.
+      *
+      *    Set the die value needed to 5.
+           MOVE WS-CONST-DV-FIVE            TO WS-DIE-VALUE-NEEDED.
+      *    Iterate through each die.
+           PERFORM CHECK-DIE-VALUE VARYING WS-DICE-INDEX FROM 1 BY 1
+               UNTIL WS-DICE-INDEX > WS-CONST-NUM-DICE.
+      *
+       SCORE-SIXES.
+      * Calculates score for Sixes category.
+      *
+      *    Set the die value needed to 6.
+           MOVE WS-CONST-DV-SIX             TO WS-DIE-VALUE-NEEDED.
       *    Iterate through each die.
            PERFORM CHECK-DIE-VALUE VARYING WS-DICE-INDEX FROM 1 BY 1
                UNTIL WS-DICE-INDEX > WS-CONST-NUM-DICE.
