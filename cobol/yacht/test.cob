@@ -139,6 +139,8 @@
        01 CONSTANT-VALUES.                                                      
            05 WS-CONST-ALL-SAME-DIVISOR     PIC 9(5) VALUE 11111.               
            05 WS-CONST-NUM-DICE             PIC 9 VALUE 5.                      
+           05 WS-CONST-3OAK-INDEX-LIMIT     PIC 9 VALUE 3.                      
+           05 WS-CONST-2OAK-INDEX-LIMIT     PIC 9 VALUE 4.                      
            05 WS-CONST-DIE-VALUES.                                              
                10 WS-CONST-DV-ONE           PIC 9 VALUE 1.                      
                10 WS-CONST-DV-TWO           PIC 9 VALUE 2.                      
@@ -157,8 +159,14 @@
       * Evaluation                                                              
        01 WS-DICE-LIST REDEFINES WS-DICE.                                       
            05 WS-DIE                        PIC 9 OCCURS 5 TIMES.               
+       01 WS-DICE-INDEX-START               PIC 9 VALUE 0.                      
        01 WS-DICE-INDEX                     PIC 9 VALUE 0.                      
        01 WS-DIE-VALUE-NEEDED               PIC 9 VALUE 0.                      
+       01 WS-THREE-OF-A-KIND-VALUE          PIC 9 VALUE 0.                      
+       01 WS-TWO-OF-ANOTHER-VALUE           PIC 9 VALUE 0.                      
+       01 WS-NUMBER-FOUND                   PIC 9 VALUE 0.                      
+       01 WS-COUNT                          PIC 9 VALUE 0.                      
+                                                                                
       *                                                                         
       * Calculation                                                             
        01 WS-CALCULATIONS.                                                      
@@ -1031,8 +1039,14 @@
        YACHT.                                                                   
       * Main program control.                                                   
       *                                                                         
-      *    Reset score.                                                         
-           MOVE ZERO                        TO WS-RESULT.                       
+      *    Reset values.                                                        
+           MOVE ZERO                        TO WS-RESULT,                       
+                                               WS-DIE-VALUE-NEEDED,             
+                                               WS-DICE-INDEX-START,             
+                                               WS-THREE-OF-A-KIND-VALUE,        
+                                               WS-TWO-OF-ANOTHER-VALUE,         
+                                               WS-NUMBER-FOUND.                 
+      *                                                                         
       *    Calculate score based on category.                                   
            EVALUATE WS-CATEGORY                                                 
                WHEN "yacht" PERFORM SCORE-YACHT                                 
@@ -1042,6 +1056,7 @@
                WHEN "fours" PERFORM SCORE-FOURS                                 
                WHEN "fives" PERFORM SCORE-FIVES                                 
                WHEN "sixes" PERFORM SCORE-SIXES                                 
+               WHEN "full house" PERFORM SCORE-FULL-HOUSE                       
            END-EVALUATE.                                                        
            EXIT.                                                                
       *                                                                         
@@ -1054,9 +1069,6 @@
       *    If all dice are the same, then score is 50.                          
            IF WS-REMAINDER IS ZERO THEN                                         
                MOVE WS-CONST-SCORE-YACHT    TO WS-RESULT                        
-      *    If all dice are not the smae, then score is 0.                       
-           ELSE                                                                 
-               MOVE ZERO                    TO WS-RESULT                        
            END-IF.                                                              
       *                                                                         
        SCORE-ONES.                                                              
@@ -1066,7 +1078,7 @@
            MOVE WS-CONST-DV-ONE             TO WS-DIE-VALUE-NEEDED.             
       *    Iterate through each die.                                            
            PERFORM CHECK-DIE-VALUE VARYING WS-DICE-INDEX FROM 1 BY 1            
-               UNTIL WS-DICE-INDEX > WS-CONST-NUM-DICE.                         
+             UNTIL WS-DICE-INDEX > WS-CONST-NUM-DICE.                           
       *                                                                         
        SCORE-TWOS.                                                              
       * Calculates score for Twos category.                                     
@@ -1075,7 +1087,7 @@
            MOVE WS-CONST-DV-TWO             TO WS-DIE-VALUE-NEEDED.             
       *    Iterate through each die.                                            
            PERFORM CHECK-DIE-VALUE VARYING WS-DICE-INDEX FROM 1 BY 1            
-               UNTIL WS-DICE-INDEX > WS-CONST-NUM-DICE.                         
+             UNTIL WS-DICE-INDEX > WS-CONST-NUM-DICE.                           
       *                                                                         
        SCORE-THREES.                                                            
       * Calculates score for Threes category.                                   
@@ -1084,7 +1096,7 @@
            MOVE WS-CONST-DV-THREE           TO WS-DIE-VALUE-NEEDED.             
       *    Iterate through each die.                                            
            PERFORM CHECK-DIE-VALUE VARYING WS-DICE-INDEX FROM 1 BY 1            
-               UNTIL WS-DICE-INDEX > WS-CONST-NUM-DICE.                         
+             UNTIL WS-DICE-INDEX > WS-CONST-NUM-DICE.                           
       *                                                                         
        SCORE-FOURS.                                                             
       * Calculates score for Fours category.                                    
@@ -1093,7 +1105,7 @@
            MOVE WS-CONST-DV-FOUR            TO WS-DIE-VALUE-NEEDED.             
       *    Iterate through each die.                                            
            PERFORM CHECK-DIE-VALUE VARYING WS-DICE-INDEX FROM 1 BY 1            
-               UNTIL WS-DICE-INDEX > WS-CONST-NUM-DICE.                         
+             UNTIL WS-DICE-INDEX > WS-CONST-NUM-DICE.                           
       *                                                                         
        SCORE-FIVES.                                                             
       * Calculates score for Fives category.                                    
@@ -1102,7 +1114,7 @@
            MOVE WS-CONST-DV-FIVE            TO WS-DIE-VALUE-NEEDED.             
       *    Iterate through each die.                                            
            PERFORM CHECK-DIE-VALUE VARYING WS-DICE-INDEX FROM 1 BY 1            
-               UNTIL WS-DICE-INDEX > WS-CONST-NUM-DICE.                         
+             UNTIL WS-DICE-INDEX > WS-CONST-NUM-DICE.                           
       *                                                                         
        SCORE-SIXES.                                                             
       * Calculates score for Sixes category.                                    
@@ -1111,7 +1123,27 @@
            MOVE WS-CONST-DV-SIX             TO WS-DIE-VALUE-NEEDED.             
       *    Iterate through each die.                                            
            PERFORM CHECK-DIE-VALUE VARYING WS-DICE-INDEX FROM 1 BY 1            
-               UNTIL WS-DICE-INDEX > WS-CONST-NUM-DICE.                         
+             UNTIL WS-DICE-INDEX > WS-CONST-NUM-DICE.                           
+      *                                                                         
+       SCORE-FULL-HOUSE.                                                        
+      * Checks for a full house (3 of one kind and 2 of another). If so,        
+      * totals dice values for score.                                           
+      *                                                                         
+      *    Look for 3-of-a-kind.                                                
+           PERFORM FIND-3-OF-A-KIND.                                            
+      *    If no 3-of-a-kind, it's not a full house, so exit.                   
+           IF WS-THREE-OF-A-KIND-VALUE IS ZERO THEN                             
+               EXIT PARAGRAPH                                                   
+           END-IF.                                                              
+      *    Look for 2-of-a-kind different from 3-of-a-kind.                     
+           PERFORM FIND-2-OF-ANOTHER.                                           
+      *    If no 2-of-another, it's not a full house, so exit.                  
+           IF WS-TWO-OF-ANOTHER-VALUE IS ZERO THEN                              
+               EXIT PARAGRAPH                                                   
+           END-IF.                                                              
+      *    It's a full house, so add values to score.                           
+           PERFORM ADD-3-OF-A-KIND-SCORE.                                       
+           PERFORM ADD-2-OF-ANOTHER-SCORE.                                      
       *                                                                         
        CHECK-DIE-VALUE.                                                         
       * Checks if die value at index is the value needed. If so, adds           
@@ -1122,3 +1154,77 @@
       *        If so, add value to score.                                       
                ADD WS-DIE-VALUE-NEEDED      TO WS-RESULT                        
            END-IF.                                                              
+      *                                                                         
+       FIND-3-OF-A-KIND.                                                        
+      * Looks for 3-of-a-kind and sets value if found.                          
+      *                                                                         
+      *    Iterate over first 3 dice as starting die.                           
+           PERFORM VARYING WS-DICE-INDEX-START FROM 1 BY 1                      
+             UNTIL WS-DICE-INDEX-START > WS-CONST-3OAK-INDEX-LIMIT              
+      *        Reset number found and set value needed to current start.        
+               MOVE 0                       TO WS-NUMBER-FOUND                  
+               MOVE WS-DIE(WS-DICE-INDEX-START)                                 
+                   TO WS-DIE-VALUE-NEEDED                                       
+      *        Iterate over remaining dice looking for match.                   
+               PERFORM VARYING WS-DICE-INDEX                                    
+                 FROM WS-DICE-INDEX-START BY 1                                  
+                 UNTIL WS-DICE-INDEX > WS-CONST-NUM-DICE                        
+      *            If match found, add to number found.                         
+                   IF WS-DIE(WS-DICE-INDEX)                                     
+                     IS EQUAL TO WS-DIE-VALUE-NEEDED THEN                       
+                       ADD 1                TO WS-NUMBER-FOUND                  
+                   END-IF                                                       
+               END-PERFORM                                                      
+      *        If number found is 3 then set 3-of-a-kind value.                 
+               IF WS-NUMBER-FOUND IS EQUAL TO 3 THEN                            
+                   MOVE WS-DIE-VALUE-NEEDED TO WS-THREE-OF-A-KIND-VALUE         
+                   EXIT PERFORM                                                 
+               END-IF                                                           
+           END-PERFORM.                                                         
+      *                                                                         
+       FIND-2-OF-ANOTHER.                                                       
+      * Looks for 2-of-a-kind different from 3-of-a-kind value and sets         
+      * value if found.                                                         
+      *                                                                         
+      *    Iterate over first 4 dice as starting die.                           
+           PERFORM VARYING WS-DICE-INDEX-START FROM 1 BY 1                      
+             UNTIL WS-DICE-INDEX-START > WS-CONST-2OAK-INDEX-LIMIT              
+      *        Reset number found and set value needed to current start.        
+               MOVE 0                       TO WS-NUMBER-FOUND                  
+               MOVE WS-DIE(WS-DICE-INDEX-START)                                 
+                   TO WS-DIE-VALUE-NEEDED                                       
+      *        If value is same as 3-of-a-kind then skip.                       
+               IF WS-DIE-VALUE-NEEDED                                           
+                 IS EQUAL TO WS-THREE-OF-A-KIND-VALUE THEN                      
+                   EXIT PERFORM                                                 
+               END-IF                                                           
+      *        Iterate over remaining dice looking for match.                   
+               PERFORM VARYING WS-DICE-INDEX                                    
+                 FROM WS-DICE-INDEX-START BY 1                                  
+                 UNTIL WS-DICE-INDEX > WS-CONST-NUM-DICE                        
+      *            If match found, add to number found.                         
+                   IF WS-DIE(WS-DICE-INDEX)                                     
+                     IS EQUAL TO WS-DIE-VALUE-NEEDED THEN                       
+                       ADD 1                TO WS-NUMBER-FOUND                  
+                   END-IF                                                       
+               END-PERFORM                                                      
+      *        If number found is 2 then set 2-of-another value.                
+               IF WS-NUMBER-FOUND IS EQUAL TO 2 THEN                            
+                   MOVE WS-DIE-VALUE-NEEDED TO WS-TWO-OF-ANOTHER-VALUE          
+                   EXIT PERFORM                                                 
+               END-IF                                                           
+           END-PERFORM.                                                         
+      *                                                                         
+       ADD-3-OF-A-KIND-SCORE.                                                   
+      * AddS 3-of-a-kind value to score 3 times.                                
+      *                                                                         
+           PERFORM VARYING WS-COUNT FROM 1 BY 1 UNTIL WS-COUNT > 3              
+               ADD WS-THREE-OF-A-KIND-VALUE TO WS-RESULT                        
+           END-PERFORM.                                                         
+      *                                                                         
+       ADD-2-OF-ANOTHER-SCORE.                                                  
+      * Adds 2-of-another value to score 2 times.                               
+      *                                                                         
+           PERFORM VARYING WS-COUNT FROM 1 BY 1 UNTIL WS-COUNT > 2              
+               ADD WS-TWO-OF-ANOTHER-VALUE  TO WS-RESULT                        
+           END-PERFORM.                                                         
