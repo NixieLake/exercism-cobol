@@ -1,0 +1,6 @@
+      *From file: C:\Users\coffe\source\repos\NixieLake\exercism-cobol\cobol\hello-world\tst\hello-world\hello-world.cut
+TestCase "Hello World"
+	MOVE SPACES TO WS-RESULT
+	PERFORM HELLO-WORLD
+	EXPECT WS-RESULT = "Hello, World! "
+
