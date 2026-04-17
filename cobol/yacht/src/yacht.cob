@@ -13,6 +13,11 @@
            05 WS-CONST-NUM-DICE             PIC 9 VALUE 5.
            05 WS-CONST-DIE-VALUES.
                10 WS-CONST-DV-ONE           PIC 9 VALUE 1.
+               10 WS-CONST-DV-TWO           PIC 9 VALUE 2.
+               10 WS-CONST-DV-THREE         PIC 9 VALUE 3.
+               10 WS-CONST-DV-FOUR          PIC 9 VALUE 4.
+               10 WS-CONST-DV-FIVE          PIC 9 VALUE 5.
+               10 WS-CONST-DV-SIX           PIC 9 VALUE 6.
            05 WS-CONST-SET-SCORES.
                10 WS-CONST-SCORE-YACHT      PIC 99 VALUE 50.
       *
@@ -43,6 +48,7 @@
            EVALUATE WS-CATEGORY
                WHEN "yacht" PERFORM SCORE-YACHT
                WHEN "ones" PERFORM SCORE-ONES
+               WHEN "twos" PERFORM SCORE-TWOS
            END-EVALUATE.
            EXIT.
       *
@@ -65,6 +71,15 @@
       *
       *    Set the die value needed to 1.
            MOVE WS-CONST-DV-ONE             TO WS-DIE-VALUE-NEEDED.
+      *    Iterate through each die.
+           PERFORM CHECK-DIE-VALUE VARYING WS-DICE-INDEX FROM 1 BY 1
+               UNTIL WS-DICE-INDEX > WS-CONST-NUM-DICE.
+      *
+       SCORE-TWOS.
+      * Calculates score for Ones category.
+      *
+      *    Set the die value needed to 2.
+           MOVE WS-CONST-DV-TWO             TO WS-DIE-VALUE-NEEDED.
       *    Iterate through each die.
            PERFORM CHECK-DIE-VALUE VARYING WS-DICE-INDEX FROM 1 BY 1
                UNTIL WS-DICE-INDEX > WS-CONST-NUM-DICE.
