@@ -14,7 +14,10 @@
            05 WS-CONST-3OAK-INDEX-LIMIT     PIC 9 VALUE 3.
            05 WS-CONST-2OAK-INDEX-LIMIT     PIC 9 VALUE 4.
            05 WS-CONST-4OAK-INDEX-LIMIT     PIC 9 VALUE 2.
-           05 WS-LITTLE-STRAIGHT-START      PIC 9 VALUE 1.
+           05 WS-CONST-L-STRAIGHT-START     PIC 9 VALUE 1.
+           05 WS-CONST-L-STRAIGHT-MAX       PIC 9 VALUE 5.
+           05 WS-CONST-B-STRAIGHT-START     PIC 9 VALUE 2.
+           05 WS-CONST-B-STRAIGHT-MAX       PIC 9 VALUE 6.
            05 WS-CONST-DIE-VALUES.
                10 WS-CONST-DV-ONE           PIC 9 VALUE 1.
                10 WS-CONST-DV-TWO           PIC 9 VALUE 2.
@@ -25,6 +28,7 @@
            05 WS-CONST-SET-SCORES.
                10 WS-CONST-SCORE-YACHT      PIC 99 VALUE 50.
                10 WS-CONST-SCORE-L-STRAIGHT PIC 99 VALUE 30.
+               10 WS-CONST-SCORE-B-STRAIGHT PIC 99 VALUE 30.
       *
       * Input/Output
        01 WS-RESULT                         PIC 99 VALUE 0.
@@ -64,16 +68,18 @@
       *
       *    Calculate score based on category.
            EVALUATE WS-CATEGORY
-               WHEN "yacht" PERFORM SCORE-YACHT
-               WHEN "ones" PERFORM SCORE-ONES
-               WHEN "twos" PERFORM SCORE-TWOS
-               WHEN "threes" PERFORM SCORE-THREES
-               WHEN "fours" PERFORM SCORE-FOURS
-               WHEN "fives" PERFORM SCORE-FIVES
-               WHEN "sixes" PERFORM SCORE-SIXES
-               WHEN "full house" PERFORM SCORE-FULL-HOUSE
-               WHEN "four of a kind" PERFORM SCORE-FOUR-OF-A-KIND
+               WHEN "yacht          " PERFORM SCORE-YACHT
+               WHEN "ones           " PERFORM SCORE-ONES
+               WHEN "twos           " PERFORM SCORE-TWOS
+               WHEN "threes         " PERFORM SCORE-THREES
+               WHEN "fours          " PERFORM SCORE-FOURS
+               WHEN "fives          " PERFORM SCORE-FIVES
+               WHEN "sixes          " PERFORM SCORE-SIXES
+               WHEN "full house     " PERFORM SCORE-FULL-HOUSE
+               WHEN "four of a kind " PERFORM SCORE-FOUR-OF-A-KIND
                WHEN "little straight" PERFORM SCORE-LITTLE-STRAIGHT
+               WHEN "big straight   " PERFORM SCORE-BIG-STRAIGHT
+               WHEN "choice         " PERFORM SCORE-CHOICE
            END-EVALUATE.
            EXIT.
       *
@@ -199,8 +205,8 @@
       *
       *    Iterate through each target number (1-5).
            PERFORM VARYING WS-DIE-VALUE-NEEDED 
-             FROM WS-LITTLE-STRAIGHT-START BY 1
-             UNTIL WS-DIE-VALUE-NEEDED > WS-CONST-NUM-DICE
+             FROM WS-CONST-L-STRAIGHT-START BY 1
+             UNTIL WS-DIE-VALUE-NEEDED > WS-CONST-L-STRAIGHT-MAX
       *        Reset number found to 0.
                MOVE 0                       TO WS-NUMBER-FOUND
       *        Iterate through dice, looking for target number.
@@ -220,6 +226,43 @@
            END-PERFORM.
       *    If we get here, we have a little straight. Add the score.
            MOVE WS-CONST-SCORE-L-STRAIGHT   TO WS-RESULT.
+      *
+       SCORE-BIG-STRAIGHT.
+      * Checks for a big straight. If so, adds big straight score.
+      *
+      *    Iterate through each target number (1-5).
+           PERFORM VARYING WS-DIE-VALUE-NEEDED 
+             FROM WS-CONST-B-STRAIGHT-START BY 1
+             UNTIL WS-DIE-VALUE-NEEDED > WS-CONST-B-STRAIGHT-MAX
+      *        Reset number found to 0.
+               MOVE 0                       TO WS-NUMBER-FOUND
+      *        Iterate through dice, looking for target number.
+               PERFORM VARYING WS-DICE-INDEX FROM 1 BY 1 
+                 UNTIL WS-DICE-INDEX > WS-CONST-NUM-DICE
+      *            If number found, exit loop.
+                   IF WS-DIE(WS-DICE-INDEX)
+                     IS EQUAL TO WS-DIE-VALUE-NEEDED THEN
+                       MOVE 1               TO WS-NUMBER-FOUND
+                       EXIT PERFORM
+                   END-IF
+               END-PERFORM
+      *        If number not found, exit paragraph with no score.
+               IF WS-NUMBER-FOUND IS ZERO THEN
+                   EXIT PARAGRAPH
+               END-IF
+           END-PERFORM.
+      *    If we get here, we have a little straight. Add the score.
+           MOVE WS-CONST-SCORE-B-STRAIGHT   TO WS-RESULT.
+      *
+       SCORE-CHOICE.
+      * Adds the value of the dice to the score.
+      *
+      *    Iterate through the dice.
+           PERFORM VARYING WS-DICE-INDEX FROM 1 BY 1 
+             UNTIL WS-DICE-INDEX > WS-CONST-NUM-DICE 
+      *        Add the die value to the score.
+               ADD WS-DIE(WS-DICE-INDEX)    TO WS-RESULT
+           END-PERFORM.
       *
        CHECK-DIE-VALUE.
       * Checks if die value at index is the value needed. If so, adds
