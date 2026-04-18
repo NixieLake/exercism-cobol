@@ -13,6 +13,7 @@
            05 WS-CONST-NUM-DICE             PIC 9 VALUE 5.
            05 WS-CONST-3OAK-INDEX-LIMIT     PIC 9 VALUE 3.
            05 WS-CONST-2OAK-INDEX-LIMIT     PIC 9 VALUE 4.
+           05 WS-CONST-4OAK-INDEX-LIMIT     PIC 9 VALUE 2.
            05 WS-CONST-DIE-VALUES.
                10 WS-CONST-DV-ONE           PIC 9 VALUE 1.
                10 WS-CONST-DV-TWO           PIC 9 VALUE 2.
@@ -36,9 +37,9 @@
        01 WS-DIE-VALUE-NEEDED               PIC 9 VALUE 0.
        01 WS-THREE-OF-A-KIND-VALUE          PIC 9 VALUE 0.
        01 WS-TWO-OF-ANOTHER-VALUE           PIC 9 VALUE 0.
+       01 WS-FOUR-OF-A-KIND-VALUE           PIC 9 VALUE 0.
        01 WS-NUMBER-FOUND                   PIC 9 VALUE 0.
        01 WS-COUNT                          PIC 9 VALUE 0.
-
       *
       * Calculation
        01 WS-CALCULATIONS.
@@ -56,6 +57,7 @@
                                                WS-DICE-INDEX-START,
                                                WS-THREE-OF-A-KIND-VALUE,
                                                WS-TWO-OF-ANOTHER-VALUE,
+                                               WS-FOUR-OF-A-KIND-VALUE,
                                                WS-NUMBER-FOUND.
       *
       *    Calculate score based on category.
@@ -68,6 +70,7 @@
                WHEN "fives" PERFORM SCORE-FIVES
                WHEN "sixes" PERFORM SCORE-SIXES
                WHEN "full house" PERFORM SCORE-FULL-HOUSE
+               WHEN "four of a kind" PERFORM SCORE-FOUR-OF-A-KIND
            END-EVALUATE.
            EXIT.
       *
@@ -155,6 +158,38 @@
       *    It's a full house, so add values to score.
            PERFORM ADD-3-OF-A-KIND-SCORE.
            PERFORM ADD-2-OF-ANOTHER-SCORE.
+      *
+       SCORE-FOUR-OF-A-KIND.
+      * Checks for four-of-a-kind. If so, totals the score of the four
+      * dice.
+      *
+      *    *    Iterate over first 2 dice as starting die.
+           PERFORM VARYING WS-DICE-INDEX-START FROM 1 BY 1
+             UNTIL WS-DICE-INDEX-START > WS-CONST-4OAK-INDEX-LIMIT
+      *        Reset number found and set value needed to current start.
+               MOVE 0                       TO WS-NUMBER-FOUND
+               MOVE WS-DIE(WS-DICE-INDEX-START) 
+                   TO WS-DIE-VALUE-NEEDED
+      *        Iterate over remaining dice looking for match.
+               PERFORM VARYING WS-DICE-INDEX 
+                 FROM WS-DICE-INDEX-START BY 1
+                 UNTIL WS-DICE-INDEX > WS-CONST-NUM-DICE
+      *            If match found, add to number found.
+                   IF WS-DIE(WS-DICE-INDEX) 
+                     IS EQUAL TO WS-DIE-VALUE-NEEDED THEN
+                       ADD 1                TO WS-NUMBER-FOUND
+                   END-IF
+               END-PERFORM
+      *        If number found > 3 then set 4-of-a-kind value.
+               IF WS-NUMBER-FOUND IS GREATER THAN 3 THEN
+                   MOVE WS-DIE-VALUE-NEEDED TO WS-FOUR-OF-A-KIND-VALUE
+                   EXIT PERFORM
+               END-IF
+           END-PERFORM.
+      *    Add score of 4 times the 4-of-a-kind value.
+           PERFORM VARYING WS-COUNT FROM 1 BY 1 UNTIL WS-COUNT > 4
+               ADD WS-FOUR-OF-A-KIND-VALUE TO WS-RESULT
+           END-PERFORM.
       *
        CHECK-DIE-VALUE.
       * Checks if die value at index is the value needed. If so, adds
